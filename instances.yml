@@ -1,0 +1,24 @@
+---
+user_simple.router:
+  advertise_uri: localhost:3301
+  http_port: 8081
+
+user_simple.s1-master:
+  advertise_uri: localhost:3302
+  http_port: 8082
+
+user_simple.s1-replica:
+  advertise_uri: localhost:3303
+  http_port: 8083
+
+user_simple.s2-master:
+  advertise_uri: localhost:3304
+  http_port: 8084
+
+user_simple.s2-replica:
+  advertise_uri: localhost:3305
+  http_port: 8085
+
+user_simple-stateboard:
+  listen: localhost:4401
+  password: passwd
