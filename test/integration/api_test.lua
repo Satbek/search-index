@@ -1,5 +1,6 @@
 local t = require('luatest')
 local g = t.group('integration_api')
+local uuid = require('uuid')
 
 local helper = require('test.helper')
 local cluster = helper.cluster
@@ -11,10 +12,6 @@ end
 
 g.after_all = function()
     helper.stop_cluster(g.cluster)
-end
-
-g.before_each = function()
-    -- helper.truncate_space_on_cluster(g.cluster, 'Set your space name here')
 end
 
 g.test_sample = function()
@@ -29,4 +26,24 @@ g.test_metrics = function()
     local response = server:http_request('get', '/metrics')
     t.assert_equals(response.status, 200)
     t.assert_equals(response.reason, "Ok")
+end
+
+local function create_test_user()
+    local id = uuid.str()
+    local data = {
+        name = 'test ' .. math.random(100000),
+        id = id,
+    }
+    return data
+end
+
+g.test_get_user_by_id = function()
+    local server = cluster.main_server
+    local user = create_test_user()
+    local _, err = server.net_box:call('api.replace_user', {user.id, user})
+    t.assert_equals(err, nil)
+
+    local expected_user, err = server.net_box:call('api.get_user_by_id', {user.id})
+    t.assert_equals(err, nil)
+    t.assert_equals(expected_user, user)
 end
