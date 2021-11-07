@@ -2,6 +2,7 @@ local M = {}
 local errors = require('errors')
 local json = require('json')
 local log = require('log')
+local fiber = require('fiber')
 
 M.user_not_exists_err = errors.new_class('user_not_exists')
 M.replace_err = errors.new_class('replace_user')
@@ -28,6 +29,25 @@ function M.replace_user(user_data)
     end
     log.info("replace user: %s", user_data.id)
     box.space.user:replace(user_t)
+end
+
+function M.get_users_by_name(user_name)
+    local yield_every = 100
+    local count = 1
+
+    local result = {}
+    for _, t in box.space.user:pairs() do
+        if count % yield_every == 0 then
+            fiber.yield()
+        end
+
+        count = count + 1
+        if t.name == user_name then
+            table.insert(result, user_tuple_to_output(t))
+        end
+    end
+
+    return result
 end
 
 return M

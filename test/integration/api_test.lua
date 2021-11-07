@@ -14,6 +14,10 @@ g.after_all = function()
     helper.stop_cluster(g.cluster)
 end
 
+g.after_each = function()
+    helper.truncate_space_on_cluster(g.cluster, 'user')
+end
+
 g.test_sample = function()
     local server = cluster.main_server
     local response = server:http_request('post', '/admin/api', {json = {query = '{}'}})
@@ -43,7 +47,54 @@ g.test_get_user_by_id = function()
     local _, err = server.net_box:call('api.replace_user', {user.id, user})
     t.assert_equals(err, nil)
 
-    local expected_user, err = server.net_box:call('api.get_user_by_id', {user.id})
+    local actual_user, err = server.net_box:call('api.get_user_by_id', {user.id})
     t.assert_equals(err, nil)
-    t.assert_equals(expected_user, user)
+    t.assert_equals(actual_user, user)
+end
+
+g.test_find_user_by_name = function()
+    local server = cluster.main_server
+    local user = create_test_user()
+    local _, err = server.net_box:call('api.replace_user', {user.id, user})
+    t.assert_equals(err, nil)
+
+    for _ = 1, 100 do
+        local another_user = create_test_user()
+        local _, err = server.net_box:call('api.replace_user', {another_user.id, another_user})
+        t.assert_equals(err, nil)
+    end
+
+    local actual_users, err = server.net_box:call('api.find_users_by_name', {user.name})
+    t.assert_equals(err, nil)
+    t.assert_items_equals(actual_users, {user})
+end
+
+local function create_users_with_same_name(name, count)
+    local users = {}
+    for i = 1, count do
+        users[i] = create_test_user()
+        users[i].name = name
+    end
+    return users
+end
+
+local function replace_users(users)
+    local server = cluster.main_server
+
+    for _, u in pairs(users) do
+        local _, err = server.net_box:call('api.replace_user', {u.id, u})
+        t.assert_equals(err, nil)
+    end
+end
+
+g.test_find_users_by_name = function()
+    local search_name = 'first'
+    local users_to_search = create_users_with_same_name(search_name, 10)
+    local another_users = create_users_with_same_name('second', 100)
+    replace_users(users_to_search)
+    replace_users(another_users)
+
+    local actual_users, err = cluster.main_server.net_box:call('api.find_users_by_name', {search_name})
+    t.assert_equals(err, nil)
+    t.assert_items_equals(actual_users, users_to_search)
 end

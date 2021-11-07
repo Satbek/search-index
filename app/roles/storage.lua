@@ -47,7 +47,7 @@ local function apply_config(conf, opts) -- luacheck: no unused args
 
         box.space.user:create_index('bucket_id', {
             if_not_exists = true,
-            unique = true,
+            unique = false,
             parts = {
                 {'bucket_id', 'unsigned'},
             }

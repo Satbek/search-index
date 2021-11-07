@@ -27,11 +27,27 @@ helper.cluster = cartridge_helpers.Cluster:new({
             },
         },
         {
-            alias = 'api',
+            alias = 'storage-b',
             uuid = cartridge_helpers.uuid('b'),
             roles = {'app.roles.storage'},
             servers = {
-                { instance_uuid = cartridge_helpers.uuid('b', 1), alias = 'api' },
+                { instance_uuid = cartridge_helpers.uuid('b', 1), alias = 'storage-1b' },
+            },
+        },
+        {
+            alias = 'storage-c',
+            uuid = cartridge_helpers.uuid('c'),
+            roles = {'app.roles.storage'},
+            servers = {
+                { instance_uuid = cartridge_helpers.uuid('c', 1), alias = 'storage-1c' },
+            },
+        },
+        {
+            alias = 'storage-d',
+            uuid = cartridge_helpers.uuid('d'),
+            roles = {'app.roles.storage'},
+            servers = {
+                { instance_uuid = cartridge_helpers.uuid('d', 1), alias = 'storage-1d' },
             },
         },
     }
