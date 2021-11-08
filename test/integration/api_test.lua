@@ -98,3 +98,31 @@ g.test_find_users_by_name = function()
     t.assert_equals(err, nil)
     t.assert_items_equals(actual_users, users_to_search)
 end
+
+g.test_replace_full_user = function()
+    local user = {
+        id = uuid.str(),
+        name = 'full',
+        phone_number = '9045550108',
+        email = 'example@example.com',
+        birthdate = 721208397,
+        passport_num = '12345',
+        metadata = {
+            geo = {
+                longitude = 54.572062,
+                latitude = 40.170847,
+            },
+            brands = {
+                Nike = true,
+                Adidas = true,
+                ["McDonald’s"] = true,
+            }
+        },
+    }
+    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user.id, user})
+    t.assert_equals(err, nil)
+
+    local actual_user, err = g.cluster.main_server.net_box:call('api.get_user_by_id', {user.id})
+    t.assert_equals(err, nil)
+    t.assert_equals(actual_user, user)
+end
