@@ -1,18 +1,24 @@
 local M = {}
 
+local log = require('log')
+local json = require('json')
+
 M.vshard_router = require('vshard.router')
 M.vshard_timeout = 1
+M.search_index = require('app.search_api')
 
 local errors = require('errors')
 local cartridge_pool = require('cartridge.pool')
 local cartridge_rpc = require('cartridge.rpc')
 
-function M.get_user_by_id(id)
+local function get_user_by_id(id)
     local bucket_id = M.vshard_router.bucket_id_strcrc32(id)
     local user, err = M.vshard_router.callrw(bucket_id, 'storage_api.get_user_by_id', {id}, {timeout = M.vshard_timeout})
     err = errors.wrap(err)
     return user, err
 end
+
+M.get_user_by_id = get_user_by_id
 
 function M.replace_user(id, data)
     local bucket_id = M.vshard_router.bucket_id_strcrc32(id)
@@ -26,6 +32,14 @@ function M.replace_user(id, data)
     if err ~= nil then
         return false, err
     end
+
+    if user_data.phone_number ~= nil then
+        local _, err_pn = M.search_index.user_id.add_phone_number_identifier(user_data.id, user_data.phone_number)
+        if err_pn ~= nil then
+            return false, err
+        end
+    end
+
     return true, err
 end
 
@@ -44,6 +58,24 @@ function M.find_users_by_name(name)
         end
     end
     return result
+end
+
+function M.find_users_by_phone_number(phone_number)
+    local user_ids, err = M.search_index.user_id.get_by_phone_number(phone_number)
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+
+    local res = {}
+    for i, user_id in pairs(user_ids) do
+        res[i], err = get_user_by_id(user_id)
+        if err ~= nil then
+            return nil, err
+        end
+    end
+
+    return res
 end
 
 return M

@@ -5,18 +5,20 @@ local uuid = require('uuid')
 local helper = require('test.helper')
 local cluster = helper.cluster
 
-g.before_all = function()
+g.before_all(function()
     g.cluster = helper.cluster
     g.cluster:start()
-end
+end)
 
-g.after_all = function()
+g.after_all(function()
     helper.stop_cluster(g.cluster)
-end
+end)
 
-g.after_each = function()
+g.after_each(function()
     helper.truncate_space_on_cluster(g.cluster, 'user')
-end
+    helper.truncate_space_on_cluster(g.cluster, 'user_search_index')
+end)
+
 
 g.test_sample = function()
     local server = cluster.main_server
@@ -99,11 +101,11 @@ g.test_find_users_by_name = function()
     t.assert_items_equals(actual_users, users_to_search)
 end
 
-g.test_replace_full_user = function()
+local function create_full_test_user()
     local user = {
         id = uuid.str(),
         name = 'full',
-        phone_number = '9045550108',
+        phone_number = tostring(math.random(100000, 200000)),
         email = 'example@example.com',
         birthdate = 721208397,
         passport_num = '12345',
@@ -119,10 +121,43 @@ g.test_replace_full_user = function()
             }
         },
     }
+    return user
+end
+
+g.test_replace_full_user = function()
+    local user = create_full_test_user()
     local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user.id, user})
     t.assert_equals(err, nil)
 
     local actual_user, err = g.cluster.main_server.net_box:call('api.get_user_by_id', {user.id})
     t.assert_equals(err, nil)
     t.assert_equals(actual_user, user)
+end
+
+g.test_find_user_by_phone_number = function()
+    local user = create_full_test_user()
+    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user.id, user})
+    t.assert_equals(err, nil)
+
+    local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_phone_number', {user.phone_number})
+    t.assert_equals(err, nil)
+    t.assert_items_include(actual_users, { user })
+end
+
+g.test_find_users_by_phone_numbers = function()
+    local phone_number = '888888888'
+    local user_a = create_full_test_user()
+    local user_b = create_full_test_user()
+    user_a.phone_number = phone_number
+    user_b.phone_number = phone_number
+
+    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user_a.id, user_a})
+    t.assert_equals(err, nil)
+
+    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user_b.id, user_b})
+    t.assert_equals(err, nil)
+
+    local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_phone_number', {phone_number})
+    t.assert_equals(err, nil)
+    t.assert_items_include(actual_users, { user_a, user_b })
 end
