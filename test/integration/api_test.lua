@@ -161,3 +161,15 @@ g.test_find_users_by_phone_numbers = function()
     t.assert_equals(err, nil)
     t.assert_items_include(actual_users, { user_a, user_b })
 end
+
+g.test_find_user_by_email = function()
+    local email = 'email@email.com'
+    local user = create_full_test_user()
+    user.email = email
+    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user.id, user})
+    t.assert_equals(err, nil)
+
+    local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_email', {email})
+    t.assert_equals(err, nil)
+    t.assert_items_include(actual_users, { user })
+end

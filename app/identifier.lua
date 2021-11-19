@@ -22,4 +22,13 @@ function M.cmp_data.phone_number(data_one, data_two)
     return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
 end
 
+function M.email(email)
+    local data = {'email', email}
+    return Identifier:new(data)
+end
+
+function M.cmp_data.email(data_one, data_two)
+    return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
+end
+
 return M
