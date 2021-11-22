@@ -67,4 +67,33 @@ function M.user_id.add_email_identifier(user_id, email)
     return ok
 end
 
+function M.user_id.get_by_passport_num(passport_num)
+    local identifier = M.identifier.passport_num(passport_num)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(identifier.hash)
+
+    local ids, err = M.vshard_router.callrw(bucket_id, 'search_storage_api.user_id.get_by_passport_num',
+        {identifier.hash, identifier.data}, {timeout = M.vshard_timeout}
+    )
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+    return ids
+end
+
+function M.user_id.add_passport_num_identifier(user_id, passport_num)
+    local identifier = M.identifier.passport_num(passport_num)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(identifier.hash)
+
+    local ok, err = M.vshard_router.callrw(bucket_id, 'search_storage_api.user_id.add_passport_num_identifier',
+        {user_id, identifier.hash, identifier.data, bucket_id}, {timeout = M.vshard_timeout}
+    )
+
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+    return ok
+end
+
 return M

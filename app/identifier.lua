@@ -31,4 +31,13 @@ function M.cmp_data.email(data_one, data_two)
     return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
 end
 
+function M.passport_num(passport_num)
+    local data = {'passport_num', passport_num}
+    return Identifier:new(data)
+end
+
+function M.cmp_data.passport_num(data_one, data_two)
+    return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
+end
+
 return M

@@ -60,4 +60,16 @@ function M.user_id.add_email_identifier(user_id, hash, data, bucket_id)
     return ok
 end
 
+function M.user_id.get_by_passport_num(hash, data)
+    return get_users_by_hash(hash, data, M.cmp_data.passport_num)
+end
+
+function M.user_id.add_passport_num_identifier(user_id, hash, data, bucket_id)
+    local ok, err = pcall(add_identifier, user_id, hash, data, bucket_id)
+    if not ok then
+        return identifier_err:new('add_email_identifier: ' .. err)
+    end
+    return ok
+end
+
 return M

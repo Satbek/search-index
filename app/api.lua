@@ -37,14 +37,21 @@ function M.add_user(id, data)
     if user_data.phone_number ~= nil then
         local _, err_pn = M.search_index.user_id.add_phone_number_identifier(user_data.id, user_data.phone_number)
         if err_pn ~= nil then
-            return false, err
+            return false, err_pn
         end
     end
 
     if user_data.email ~= nil then
-        local _, err_pn = M.search_index.user_id.add_email_identifier(user_data.id, user_data.email)
+        local _, err_em = M.search_index.user_id.add_email_identifier(user_data.id, user_data.email)
+        if err_em ~= nil then
+            return false, err_em
+        end
+    end
+
+    if user_data.passport_num ~= nil then
+        local _, err_pn = M.search_index.user_id.add_passport_num_identifier(user_data.id, user_data.passport_num)
         if err_pn ~= nil then
-            return false, err
+            return false, err_pn
         end
     end
 
@@ -88,6 +95,24 @@ end
 
 function M.find_users_by_email(email)
     local user_ids, err = M.search_index.user_id.get_by_email(email)
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+
+    local res = {}
+    for i, user_id in pairs(user_ids) do
+        res[i], err = get_user_by_id(user_id)
+        if err ~= nil then
+            return nil, err
+        end
+    end
+
+    return res
+end
+
+function M.find_users_by_passport_num(passport_num)
+    local user_ids, err = M.search_index.user_id.get_by_passport_num(passport_num)
     if err ~= nil then
         err = errors.wrap(err)
         return nil, err
