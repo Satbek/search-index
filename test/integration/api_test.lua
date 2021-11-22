@@ -46,7 +46,7 @@ end
 g.test_get_user_by_id = function()
     local server = cluster.main_server
     local user = create_test_user()
-    local _, err = server.net_box:call('api.replace_user', {user.id, user})
+    local _, err = server.net_box:call('api.add_user', {user.id, user})
     t.assert_equals(err, nil)
 
     local actual_user, err = server.net_box:call('api.get_user_by_id', {user.id})
@@ -57,12 +57,12 @@ end
 g.test_find_user_by_name = function()
     local server = cluster.main_server
     local user = create_test_user()
-    local _, err = server.net_box:call('api.replace_user', {user.id, user})
+    local _, err = server.net_box:call('api.add_user', {user.id, user})
     t.assert_equals(err, nil)
 
     for _ = 1, 100 do
         local another_user = create_test_user()
-        local _, err = server.net_box:call('api.replace_user', {another_user.id, another_user})
+        local _, err = server.net_box:call('api.add_user', {another_user.id, another_user})
         t.assert_equals(err, nil)
     end
 
@@ -80,11 +80,11 @@ local function create_users_with_same_name(name, count)
     return users
 end
 
-local function replace_users(users)
+local function add_users(users)
     local server = cluster.main_server
 
     for _, u in pairs(users) do
-        local _, err = server.net_box:call('api.replace_user', {u.id, u})
+        local _, err = server.net_box:call('api.add_user', {u.id, u})
         t.assert_equals(err, nil)
     end
 end
@@ -93,8 +93,8 @@ g.test_find_users_by_name = function()
     local search_name = 'first'
     local users_to_search = create_users_with_same_name(search_name, 10)
     local another_users = create_users_with_same_name('second', 100)
-    replace_users(users_to_search)
-    replace_users(another_users)
+    add_users(users_to_search)
+    add_users(another_users)
 
     local actual_users, err = cluster.main_server.net_box:call('api.find_users_by_name', {search_name})
     t.assert_equals(err, nil)
@@ -126,7 +126,7 @@ end
 
 g.test_replace_full_user = function()
     local user = create_full_test_user()
-    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user.id, user})
+    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
     t.assert_equals(err, nil)
 
     local actual_user, err = g.cluster.main_server.net_box:call('api.get_user_by_id', {user.id})
@@ -136,7 +136,7 @@ end
 
 g.test_find_user_by_phone_number = function()
     local user = create_full_test_user()
-    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user.id, user})
+    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
     t.assert_equals(err, nil)
 
     local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_phone_number', {user.phone_number})
@@ -151,10 +151,10 @@ g.test_find_users_by_phone_numbers = function()
     user_a.phone_number = phone_number
     user_b.phone_number = phone_number
 
-    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user_a.id, user_a})
+    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user_a.id, user_a})
     t.assert_equals(err, nil)
 
-    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user_b.id, user_b})
+    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user_b.id, user_b})
     t.assert_equals(err, nil)
 
     local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_phone_number', {phone_number})
@@ -166,7 +166,7 @@ g.test_find_user_by_email = function()
     local email = 'email@email.com'
     local user = create_full_test_user()
     user.email = email
-    local _, err = g.cluster.main_server.net_box:call('api.replace_user', {user.id, user})
+    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
     t.assert_equals(err, nil)
 
     local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_email', {email})

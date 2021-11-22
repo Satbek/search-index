@@ -22,13 +22,13 @@ function M.get_user_by_id(id)
 end
 
 
-function M.replace_user(user_data)
+function M.add_user(user_data)
     local user_t, err = box.space.user:frommap(user_data)
     if user_t == nil then
         return nil, M.replace_err:new('data=%s,err=%s', json.encode(user_data), err)
     end
     log.info("replace user: %s", user_data.id)
-    box.space.user:replace(user_t)
+    box.space.user:insert(user_t)
 end
 
 function M.get_users_by_name(user_name)
