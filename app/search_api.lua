@@ -96,4 +96,34 @@ function M.user_id.add_passport_num_identifier(user_id, passport_num)
     return ok
 end
 
+function M.user_id.get_by_geoposition(geoposition)
+    local identifier = M.identifier.geoposition(geoposition.longitude, geoposition.latitude)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(identifier.hash)
+
+    local ok, err = M.vshard_router.callrw(bucket_id, 'search_storage_api.user_id.get_by_geoposition',
+        {identifier.hash, identifier.data}, {timeout = M.vshard_timeout}
+    )
+
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+    return ok
+end
+
+function M.user_id.add_geoposition_identifier(user_id, geoposition)
+    local identifier = M.identifier.geoposition(geoposition.longitude, geoposition.latitude)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(identifier.hash)
+
+    local ok, err = M.vshard_router.callrw(bucket_id, 'search_storage_api.user_id.add_geoposition_identifier',
+        {user_id, identifier.hash, identifier.data, bucket_id}, {timeout = M.vshard_timeout}
+    )
+
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+    return ok
+end
+
 return M

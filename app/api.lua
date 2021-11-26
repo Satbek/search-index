@@ -55,6 +55,13 @@ function M.add_user(id, data)
         end
     end
 
+    if user_data.metadata ~= nil and user_data.metadata.geo ~= nil then
+        local _, err_geo = M.search_index.user_id.add_geoposition_identifier(user_data.id, user_data.metadata.geo)
+        if err_geo ~= nil then
+            return false, err_geo
+        end
+    end
+
     return true, err
 end
 
@@ -129,4 +136,21 @@ function M.find_users_by_passport_num(passport_num)
     return res
 end
 
+function M.find_users_by_geoposition(geoposition)
+    local user_ids, err = M.search_index.user_id.get_by_geoposition(geoposition)
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+
+    local res = {}
+    for i, user_id in pairs(user_ids) do
+        res[i], err = get_user_by_id(user_id)
+        if err ~= nil then
+            return nil, err
+        end
+    end
+
+    return res
+end
 return M

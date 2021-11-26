@@ -40,4 +40,25 @@ function M.cmp_data.passport_num(data_one, data_two)
     return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
 end
 
+function M.geoposition(longitude, latitude)
+    local data = {'geoposition', longitude, latitude}
+    return Identifier:new(data)
+end
+
+function M.cmp_data.geoposition(data_one, data_two)
+    if #data_one ~= 3 then
+        return false
+    end
+    if #data_two ~= 3 then
+        return false
+    end
+
+    for i = 1, 3 do
+        if data_one[i] ~= data_two[i] then
+            return false
+        end
+    end
+    return true
+end
+
 return M

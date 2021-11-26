@@ -67,7 +67,19 @@ end
 function M.user_id.add_passport_num_identifier(user_id, hash, data, bucket_id)
     local ok, err = pcall(add_identifier, user_id, hash, data, bucket_id)
     if not ok then
-        return identifier_err:new('add_email_identifier: ' .. err)
+        return identifier_err:new('add_passport_num_identifier: ' .. err)
+    end
+    return ok
+end
+
+function M.user_id.get_by_geoposition(hash, data)
+    return get_users_by_hash(hash, data, M.cmp_data.geoposition)
+end
+
+function M.user_id.add_geoposition_identifier(user_id, hash, data, bucket_id)
+    local ok, err = pcall(add_identifier, user_id, hash, data, bucket_id)
+    if not ok then
+        return identifier_err:new('add_geoposition_identifier: ' .. err)
     end
     return ok
 end
