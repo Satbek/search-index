@@ -84,4 +84,16 @@ function M.user_id.add_geoposition_identifier(user_id, hash, data, bucket_id)
     return ok
 end
 
+function M.user_id.get_by_phone_number_hash(hash, data)
+    return get_users_by_hash(hash, data, M.cmp_data.phone_number_hash)
+end
+
+function M.user_id.add_phone_number_hash_identifier(user_id, hash, data, bucket_id)
+    local ok, err = pcall(add_identifier, user_id, hash, data, bucket_id)
+    if not ok then
+        return identifier_err:new('add_geoposition_identifier: ' .. err)
+    end
+    return ok
+end
+
 return M

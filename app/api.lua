@@ -18,6 +18,18 @@ local function get_user_by_id(id)
     return user, err
 end
 
+local function get_users_by_ids(user_ids)
+    local res = {}
+    for i, user_id in pairs(user_ids) do
+        local err
+        res[i], err = get_user_by_id(user_id)
+        if err ~= nil then
+            return nil, err
+        end
+    end
+    return res
+end
+
 M.get_user_by_id = get_user_by_id
 
 function M.add_user(id, data)
@@ -38,6 +50,10 @@ function M.add_user(id, data)
         local _, err_pn = M.search_index.user_id.add_phone_number_identifier(user_data.id, user_data.phone_number)
         if err_pn ~= nil then
             return false, err_pn
+        end
+        local _, err_pn_hash = M.search_index.user_id.add_phone_number_hash_identifier(user_data.id, user_data.phone_number)
+        if err_pn ~= nil then
+            return false, err_pn_hash
         end
     end
 
@@ -89,15 +105,7 @@ function M.find_users_by_phone_number(phone_number)
         return nil, err
     end
 
-    local res = {}
-    for i, user_id in pairs(user_ids) do
-        res[i], err = get_user_by_id(user_id)
-        if err ~= nil then
-            return nil, err
-        end
-    end
-
-    return res
+    return get_users_by_ids(user_ids)
 end
 
 function M.find_users_by_email(email)
@@ -107,15 +115,7 @@ function M.find_users_by_email(email)
         return nil, err
     end
 
-    local res = {}
-    for i, user_id in pairs(user_ids) do
-        res[i], err = get_user_by_id(user_id)
-        if err ~= nil then
-            return nil, err
-        end
-    end
-
-    return res
+    return get_users_by_ids(user_ids)
 end
 
 function M.find_users_by_passport_num(passport_num)
@@ -125,15 +125,7 @@ function M.find_users_by_passport_num(passport_num)
         return nil, err
     end
 
-    local res = {}
-    for i, user_id in pairs(user_ids) do
-        res[i], err = get_user_by_id(user_id)
-        if err ~= nil then
-            return nil, err
-        end
-    end
-
-    return res
+    return get_users_by_ids(user_ids)
 end
 
 function M.find_users_by_geoposition(geoposition)
@@ -143,14 +135,17 @@ function M.find_users_by_geoposition(geoposition)
         return nil, err
     end
 
-    local res = {}
-    for i, user_id in pairs(user_ids) do
-        res[i], err = get_user_by_id(user_id)
-        if err ~= nil then
-            return nil, err
-        end
+    return get_users_by_ids(user_ids)
+end
+
+function M.find_by_phone_number_hash(phone_number_hash)
+    local user_ids, err = M.search_index.user_id.get_by_phone_number_hash(phone_number_hash)
+    if err ~= nil then
+        err  = errors.wrap(err)
+        return nil, err
     end
 
-    return res
+    return get_users_by_ids(user_ids)
 end
+
 return M

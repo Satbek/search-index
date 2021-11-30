@@ -61,4 +61,19 @@ function M.cmp_data.geoposition(data_one, data_two)
     return true
 end
 
+function M.phone_number_hash_from_number(phone_number)
+    local hash = digest.md5_hex(phone_number .. "salty-salt")
+    local data = {'phone_number_hash', hash}
+    return Identifier:new(data)
+end
+
+function M.phone_number_hash_from_hash(phone_number_hash)
+    local data = {'phone_number_hash', phone_number_hash}
+    return Identifier:new(data)
+end
+
+function M.cmp_data.phone_number_hash(data_one, data_two)
+    return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
+end
+
 return M

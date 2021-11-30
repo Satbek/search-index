@@ -1,6 +1,7 @@
 local t = require('luatest')
 local g = t.group('integration_api')
 local uuid = require('uuid')
+local digest = require('digest')
 
 local helper = require('test.helper')
 local cluster = helper.cluster
@@ -194,6 +195,18 @@ g.test_find_by_geoposition = function()
     t.assert_equals(err, nil)
 
     local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_geoposition', {user.metadata.geo})
+    t.assert_equals(err, nil)
+    t.assert_items_include(actual_users, { user })
+end
+
+g.test_find_by_phone_number_hash = function()
+    local user = create_full_test_user()
+    local phone_number_hash = digest.md5_hex(user.phone_number .. "salty-salt")
+
+    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
+    t.assert_equals(err, nil)
+
+    local actual_users, err = g.cluster.main_server.net_box:call('api.find_by_phone_number_hash', {phone_number_hash})
     t.assert_equals(err, nil)
     t.assert_items_include(actual_users, { user })
 end

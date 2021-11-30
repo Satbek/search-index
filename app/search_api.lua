@@ -126,4 +126,34 @@ function M.user_id.add_geoposition_identifier(user_id, geoposition)
     return ok
 end
 
+function M.user_id.get_by_phone_number_hash(phone_number_hash)
+    local identifier = M.identifier.phone_number_hash_from_hash(phone_number_hash)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(identifier.hash)
+
+    local ok, err = M.vshard_router.callrw(bucket_id, 'search_storage_api.user_id.get_by_phone_number_hash',
+        {identifier.hash, identifier.data}, {timeout = M.vshard_timeout}
+    )
+
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+    return ok
+end
+
+function M.user_id.add_phone_number_hash_identifier(user_id, phone_number)
+    local identifier = M.identifier.phone_number_hash_from_number(phone_number)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(identifier.hash)
+
+    local ok, err = M.vshard_router.callrw(bucket_id, 'search_storage_api.user_id.add_phone_number_hash_identifier',
+        {user_id, identifier.hash, identifier.data, bucket_id}, {timeout = M.vshard_timeout}
+    )
+
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+    return ok
+end
+
 return M
