@@ -36,15 +36,13 @@ function M.get_users_by_name(user_name)
     local count = 1
 
     local result = {}
-    for _, t in box.space.user:pairs() do
+    for _, t in box.space.user.index.name:pairs({user_name}, 'EQ') do
         if count % yield_every == 0 then
             fiber.yield()
         end
 
         count = count + 1
-        if t.name == user_name then
-            table.insert(result, user_tuple_to_output(t))
-        end
+        table.insert(result, user_tuple_to_output(t))
     end
 
     return result

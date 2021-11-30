@@ -52,6 +52,14 @@ local function apply_config(conf, opts) -- luacheck: no unused args
             }
         })
 
+        box.space.user:create_index('name', {
+            if_not_exists = true,
+            unique = false,
+            parts = {
+                {'name', 'string'},
+            }
+        })
+
         box.space.user:create_index('bucket_id', {
             if_not_exists = true,
             unique = false,
