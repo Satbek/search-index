@@ -20,6 +20,13 @@ local function add_identifier(user_id, hash, data, bucket_id)
     })
 end
 
+local function delete_identifier(user_id, hash)
+    box.space.user_search_index:delete({
+        user_id,
+        hash,
+    })
+end
+
 local function get_users_by_hash(hash, data, cmp_func)
     local result = {}
     for _, t in box.space.user_search_index.index.hash:pairs({hash}, 'EQ') do
@@ -92,6 +99,22 @@ function M.user_id.add_phone_number_hash_identifier(user_id, hash, data, bucket_
     local ok, err = pcall(add_identifier, user_id, hash, data, bucket_id)
     if not ok then
         return identifier_err:new('add_geoposition_identifier: ' .. err)
+    end
+    return ok
+end
+
+function M.user_id.delete_phone_number_identifier(user_id, hash)
+    local ok, err = pcall(delete_identifier, user_id, hash)
+    if not ok then
+        return identifier_err:new('delete_phone_number_identifier: ' .. err)
+    end
+    return ok
+end
+
+function M.user_id.delete_phone_number_hash_identifier(user_id, hash)
+    local ok, err = pcall(delete_identifier, user_id, hash)
+    if not ok then
+        return identifier_err:new('delete_phone_number_hash_identifier: ' .. err)
     end
     return ok
 end

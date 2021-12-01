@@ -148,4 +148,34 @@ function M.find_by_phone_number_hash(phone_number_hash)
     return get_users_by_ids(user_ids)
 end
 
+function M.change_phone_number(id, new_phone_number)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(id)
+    local old_phone_number, err = M.vshard_router.callrw(bucket_id, 'storage_api.change_phone_number', {id, new_phone_number}, {timeout = M.vshard_timeout})
+    err = errors.wrap(err)
+    if err ~= nil then
+        return false, err
+    end
+
+    local _, err_pn = M.search_index.user_id.delete_phone_number_identifier(id, old_phone_number)
+    if err_pn ~= nil then
+        return false, err_pn
+    end
+
+    local _, err_nph = M.search_index.user_id.add_phone_number_identifier(id, new_phone_number)
+    if err_nph ~= nil then
+        return false, err_nph
+    end
+
+    local _, err_pn_hash = M.search_index.user_id.delete_phone_number_hash_identifier(id, old_phone_number)
+    if err_pn_hash ~= nil then
+        return false, err_pn_hash
+    end
+
+    local _, err_nph_hash = M.search_index.user_id.add_phone_number_hash_identifier(id, new_phone_number)
+    if err_nph_hash ~= nil then
+        return false, err_nph_hash
+    end
+    return true, err
+end
+
 return M

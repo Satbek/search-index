@@ -156,4 +156,34 @@ function M.user_id.add_phone_number_hash_identifier(user_id, phone_number)
     return ok
 end
 
+function M.user_id.delete_phone_number_identifier(user_id, phone_number)
+    local identifier = M.identifier.phone_number(phone_number)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(identifier.hash)
+
+    local ok, err = M.vshard_router.callrw(bucket_id, 'search_storage_api.user_id.delete_phone_number_identifier',
+        {user_id, identifier.hash}, {timeout = M.vshard_timeout}
+    )
+
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+    return ok
+end
+
+function M.user_id.delete_phone_number_hash_identifier(user_id, phone_number)
+    local identifier = M.identifier.phone_number_hash_from_number(phone_number)
+    local bucket_id = M.vshard_router.bucket_id_strcrc32(identifier.hash)
+
+    local ok, err = M.vshard_router.callrw(bucket_id, 'search_storage_api.user_id.delete_phone_number_hash_identifier',
+        {user_id, identifier.hash}, {timeout = M.vshard_timeout}
+    )
+
+    if err ~= nil then
+        err = errors.wrap(err)
+        return nil, err
+    end
+    return ok
+end
+
 return M

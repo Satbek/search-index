@@ -210,3 +210,37 @@ g.test_find_by_phone_number_hash = function()
     t.assert_equals(err, nil)
     t.assert_items_include(actual_users, { user })
 end
+
+g.test_change_phone_number = function()
+    local user = create_full_test_user()
+
+    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
+    t.assert_equals(err, nil)
+
+    local new_phone_number = '88888888'
+    local old_phone_number = user.phone_number
+    local old_phone_number_hash = digest.md5_hex(old_phone_number .. "salty-salt")
+    local new_phone_number_hash = digest.md5_hex(new_phone_number .. "salty-salt")
+
+    user.phone_number = new_phone_number
+    local _, err = g.cluster.main_server.net_box:call('api.change_phone_number', {user.id, new_phone_number})
+    t.assert_equals(err, nil)
+
+    local actual_user, err = g.cluster.main_server.net_box:call('api.get_user_by_id', {user.id})
+    t.assert_equals(err, nil)
+    t.assert_equals(actual_user, user)
+
+    local _, err = g.cluster.main_server.net_box:call('api.find_users_by_phone_number', {old_phone_number})
+    t.assert_equals(err.class_name, "SEARCH_STORAGE: NOT_FOUND")
+
+    local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_phone_number', {new_phone_number})
+    t.assert_equals(err, nil)
+    t.assert_items_include(actual_users, { user })
+
+    local _, err = g.cluster.main_server.net_box:call('api.find_by_phone_number_hash', {old_phone_number_hash})
+    t.assert_equals(err.class_name, "SEARCH_STORAGE: NOT_FOUND")
+
+    local actual_users, err = g.cluster.main_server.net_box:call('api.find_by_phone_number_hash', {new_phone_number_hash})
+    t.assert_equals(err, nil)
+    t.assert_items_include(actual_users, { user })
+end
