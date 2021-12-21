@@ -6,6 +6,9 @@ local api = require('app.api')
 
 local function init(opts) -- luacheck: no unused args
     rawset(_G, 'api', api)
+    if opts.is_master then
+        api.identifiers_queue.init()
+    end
 
     local httpd = assert(cartridge.service_get('httpd'), "Failed to get httpd serivce")
     httpd:route({method = 'GET', path = '/hello'}, function()

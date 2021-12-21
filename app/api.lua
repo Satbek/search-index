@@ -6,6 +6,7 @@ local json = require('json')
 M.vshard_router = require('vshard.router')
 M.vshard_timeout = 1
 M.search_index = require('app.search_api')
+M.identifiers_queue = require('app.identifiers_queue')
 
 local errors = require('errors')
 local cartridge_pool = require('cartridge.pool')
@@ -45,40 +46,30 @@ function M.add_user(id, data)
         return false, err
     end
 
-    -- todo move to queue with layer recreation
     if user_data.phone_number ~= nil then
-        local _, err_pn = M.search_index.user_id.add_phone_number_identifier(user_data.id, user_data.phone_number)
-        if err_pn ~= nil then
-            return false, err_pn
-        end
-        local _, err_pn_hash = M.search_index.user_id.add_phone_number_hash_identifier(user_data.id, user_data.phone_number)
-        if err_pn ~= nil then
-            return false, err_pn_hash
-        end
+        M.identifiers_queue.add_identifier(user_data.id, 'phone_number', user_data.phone_number)
+        log.info(("[add_user] add_identifier,name=phone_number,user_id=%s"):format(user_data.id))
+
+        M.identifiers_queue.add_identifier(user_data.id, 'phone_number_hash', user_data.phone_number)
+        log.info(("[add_user] add_identifier,name=phone_number_hash,user_id=%s"):format(user_data.id))
     end
 
     if user_data.email ~= nil then
-        local _, err_em = M.search_index.user_id.add_email_identifier(user_data.id, user_data.email)
-        if err_em ~= nil then
-            return false, err_em
-        end
+        M.identifiers_queue.add_identifier(user_data.id, 'email', user_data.email)
+        log.info(("[add_user] add_identifier,name=email,user_id=%s"):format(user_data.id))
     end
 
     if user_data.passport_num ~= nil then
-        local _, err_pn = M.search_index.user_id.add_passport_num_identifier(user_data.id, user_data.passport_num)
-        if err_pn ~= nil then
-            return false, err_pn
-        end
+        M.identifiers_queue.add_identifier(user_data.id, 'passport_num', user_data.passport_num)
+        log.info(("[add_user] add_identifier,name=passport_num,user_id=%s"):format(user_data.id))
     end
 
     if user_data.metadata ~= nil and user_data.metadata.geo ~= nil then
-        local _, err_geo = M.search_index.user_id.add_geoposition_identifier(user_data.id, user_data.metadata.geo)
-        if err_geo ~= nil then
-            return false, err_geo
-        end
+        M.identifiers_queue.add_identifier(user_data.id, 'metadata_geo', user_data.metadata.geo)
+        log.info(("[add_user] add_identifier,name=metadata_geo,user_id=%s"):format(user_data.id))
     end
 
-    return true, err
+    return true
 end
 
 function M.find_users_by_name(name)
@@ -156,25 +147,12 @@ function M.change_phone_number(id, new_phone_number)
         return false, err
     end
 
-    local _, err_pn = M.search_index.user_id.delete_phone_number_identifier(id, old_phone_number)
-    if err_pn ~= nil then
-        return false, err_pn
-    end
+    M.identifiers_queue.delete_identifier(id, 'phone_number', old_phone_number)
+    M.identifiers_queue.delete_identifier(id, 'phone_number_hash', old_phone_number)
 
-    local _, err_nph = M.search_index.user_id.add_phone_number_identifier(id, new_phone_number)
-    if err_nph ~= nil then
-        return false, err_nph
-    end
+    M.identifiers_queue.add_identifier(id, 'phone_number', new_phone_number)
+    M.identifiers_queue.add_identifier(id, 'phone_number_hash', new_phone_number)
 
-    local _, err_pn_hash = M.search_index.user_id.delete_phone_number_hash_identifier(id, old_phone_number)
-    if err_pn_hash ~= nil then
-        return false, err_pn_hash
-    end
-
-    local _, err_nph_hash = M.search_index.user_id.add_phone_number_hash_identifier(id, new_phone_number)
-    if err_nph_hash ~= nil then
-        return false, err_nph_hash
-    end
     return true, err
 end
 

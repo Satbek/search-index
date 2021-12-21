@@ -38,6 +38,7 @@ local ok, err = cartridge.cfg({
         'cartridge.roles.metrics',
         'app.roles.custom',
         'app.roles.storage',
+        'app.roles.search-worker',
     },
     cluster_cookie = 'user_simple-cluster-cookie',
 })

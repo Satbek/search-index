@@ -50,6 +50,14 @@ helper.cluster = cartridge_helpers.Cluster:new({
                 { instance_uuid = cartridge_helpers.uuid('d', 1), alias = 'storage-1d' },
             },
         },
+        {
+            alias = 'storage-d',
+            uuid = cartridge_helpers.uuid('e'),
+            roles = {'app.roles.search-worker'},
+            servers = {
+                { instance_uuid = cartridge_helpers.uuid('e', 1), alias = 'worker-1e' },
+            },
+        },
     }
 })
 
@@ -86,9 +94,9 @@ function helper.stop_cluster(cluster)
 end
 
 t.before_suite(function()
-    box.cfg()
     fio.rmtree(helper.datadir)
     fio.mktree(helper.datadir)
+
 end)
 
 return helper
