@@ -37,11 +37,8 @@ local function apply_config(conf, opts) -- luacheck: no unused args
                 {name = 'id', type = 'string'}, --uuid,
                 {name = 'bucket_id', type = 'unsigned'},
                 {name = 'name', type = 'string'},
+                {name = 'birthdate', type = 'number', is_nullable = true},
                 {name = 'phone_number', type = 'string', is_nullable = true},
-                {name = 'email', type = 'string', is_nullable = true},
-                {name = 'birthdate', type = 'unsigned', is_nullable = true},
-                {name = 'passport_num', type = 'string', is_nullable = true},
-                {name = 'metadata', type = 'any', is_nullable = true},
             }
         })
         box.space.user:create_index('pk', {

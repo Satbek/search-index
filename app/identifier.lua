@@ -22,58 +22,17 @@ function M.cmp_data.phone_number(data_one, data_two)
     return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
 end
 
-function M.email(email)
-    local data = {'email', email}
+function M.name_birthdate(name, birthdate)
+    local data = {'name', name, 'birthdate', birthdate}
     return Identifier:new(data)
 end
 
-function M.cmp_data.email(data_one, data_two)
-    return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
-end
-
-function M.passport_num(passport_num)
-    local data = {'passport_num', passport_num}
-    return Identifier:new(data)
-end
-
-function M.cmp_data.passport_num(data_one, data_two)
-    return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
-end
-
-function M.geoposition(longitude, latitude)
-    local data = {'geoposition', longitude, latitude}
-    return Identifier:new(data)
-end
-
-function M.cmp_data.geoposition(data_one, data_two)
-    if #data_one ~= 3 then
-        return false
-    end
-    if #data_two ~= 3 then
-        return false
-    end
-
-    for i = 1, 3 do
-        if data_one[i] ~= data_two[i] then
-            return false
-        end
-    end
-    return true
-end
-
-function M.phone_number_hash_from_number(phone_number)
-    local hash = digest.md5_hex(phone_number .. "salty-salt")
-    local data = {'phone_number_hash', hash}
-    return Identifier:new(data)
-end
-
-function M.phone_number_hash_from_hash(phone_number_hash)
-    local data = {'phone_number_hash', phone_number_hash}
-    return Identifier:new(data)
-end
-
-function M.cmp_data.phone_number_hash(data_one, data_two)
-    return #data_one == 2 and #data_two == 2 and (data_one[1] == data_two[1]) and (data_one[2] == data_two[2] ~= nil)
+function M.cmp_data.name_birthdate(data_one, data_two)
+    return #data_one == 4 and #data_two == 4 and
+            (data_one[1] == data_two[1]) and
+            (data_one[2] == data_two[2] ~= nil) and
+            (data_one[3] == data_two[3] ~= nil) and
+            (data_one[4] == data_two[4] ~= nil)
 end
 
 return M

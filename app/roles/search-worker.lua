@@ -61,54 +61,20 @@ local function init(opts) -- luacheck: no unused args
                         conn:eval(('return queue.tube.identifiers_tube:release(%s)'):format(task[1]))
                     end
                 end
-            end
-
-            if task_data.identifier_name == 'phone_number_hash' then
+            elseif task_data.identifier_name == 'name_birthdate' then
+                local name, birthdate = task_data.data.name, task_data.data.birthdate
                 if task_data.operation == 'add' then
                     local _
-                    _, err = search_index.user_id.add_phone_number_hash_identifier(task_data.user_id, task_data.data)
+                    _, err = search_index.user_id.add_name_birthdate_identifier(task_data.user_id, name, birthdate)
                     if err ~= nil then
-                        log.error(("[search-worker] add_phone_number_hash_identifier fail,id=%s,err=%s"):format(task[1],err))
+                        log.error(("[search-worker] add_phone_number_identifier fail,id=%s,err=%s"):format(task[1],err))
                         conn:eval(('return queue.tube.identifiers_tube:release(%s)'):format(task[1]))
                     end
                 elseif task_data.operation == 'delete' then
                     local _
-                    _, err = search_index.user_id.delete_phone_number_hash_identifier(task_data.user_id, task_data.data)
+                    _, err = search_index.user_id.delete_name_birthdate_identifier(task_data.user_id, name, birthdate)
                     if err ~= nil then
-                        log.error(("[search-worker] delete_phone_number_hash_identifier fail,id=%s,err=%s"):format(task[1],err))
-                        conn:eval(('return queue.tube.identifiers_tube:release(%s)'):format(task[1]))
-                    end
-                end
-            end
-
-            if task_data.identifier_name == 'email' then
-                if task_data.operation == 'add' then
-                    local _
-                    _, err = search_index.user_id.add_email_identifier(task_data.user_id, task_data.data)
-                    if err ~= nil then
-                        log.error(("[search-worker] add_email_identifier fail,id=%s,err=%s"):format(task[1],err))
-                        conn:eval(('return queue.tube.identifiers_tube:release(%s)'):format(task[1]))
-                    end
-                end
-            end
-
-            if task_data.identifier_name == 'passport_num' then
-                if task_data.operation == 'add' then
-                    local _
-                    _, err = search_index.user_id.add_passport_num_identifier(task_data.user_id, task_data.data)
-                    if err ~= nil then
-                        log.error(("[search-worker] add_passport_num_identifier fail,id=%s,err=%s"):format(task[1],err))
-                        conn:eval(('return queue.tube.identifiers_tube:release(%s)'):format(task[1]))
-                    end
-                end
-            end
-
-            if task_data.identifier_name == 'metadata_geo' then
-                if task_data.operation == 'add' then
-                    local _
-                    _, err = search_index.user_id.add_geoposition_identifier(task_data.user_id, task_data.data)
-                    if err ~= nil then
-                        log.error(("[search-worker] add_geoposition_identifier fail,id=%s,err=%s"):format(task[1],err))
+                        log.error(("[search-worker] delete_name_birthdate_identifier fail,id=%s,err=%s"):format(task[1],err))
                         conn:eval(('return queue.tube.identifiers_tube:release(%s)'):format(task[1]))
                     end
                 end
@@ -119,6 +85,7 @@ local function init(opts) -- luacheck: no unused args
                 log.error(("[search-worker] failed to ack,id=%s"):format(task[1]))
             end
             log.info("[search-worker] ack task,id=%s", task[1])
+
             ::continue::
         end
     end)

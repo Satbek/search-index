@@ -49,24 +49,8 @@ function M.add_user(id, data)
     if user_data.phone_number ~= nil then
         M.identifiers_queue.add_identifier(user_data.id, 'phone_number', user_data.phone_number)
         log.info(("[add_user] add_identifier,name=phone_number,user_id=%s"):format(user_data.id))
-
-        M.identifiers_queue.add_identifier(user_data.id, 'phone_number_hash', user_data.phone_number)
-        log.info(("[add_user] add_identifier,name=phone_number_hash,user_id=%s"):format(user_data.id))
-    end
-
-    if user_data.email ~= nil then
-        M.identifiers_queue.add_identifier(user_data.id, 'email', user_data.email)
-        log.info(("[add_user] add_identifier,name=email,user_id=%s"):format(user_data.id))
-    end
-
-    if user_data.passport_num ~= nil then
-        M.identifiers_queue.add_identifier(user_data.id, 'passport_num', user_data.passport_num)
-        log.info(("[add_user] add_identifier,name=passport_num,user_id=%s"):format(user_data.id))
-    end
-
-    if user_data.metadata ~= nil and user_data.metadata.geo ~= nil then
-        M.identifiers_queue.add_identifier(user_data.id, 'metadata_geo', user_data.metadata.geo)
-        log.info(("[add_user] add_identifier,name=metadata_geo,user_id=%s"):format(user_data.id))
+        M.identifiers_queue.add_identifier(user_data.id, 'name_birthdate', {name=user_data.name, birthdate=user_data.birthdate})
+        log.info(("[add_user] add_identifier,name=name_birthdate,user_id=%s"):format(user_data.id))
     end
 
     return true
@@ -99,40 +83,10 @@ function M.find_users_by_phone_number(phone_number)
     return get_users_by_ids(user_ids)
 end
 
-function M.find_users_by_email(email)
-    local user_ids, err = M.search_index.user_id.get_by_email(email)
+function M.find_users_by_name_birthdate(name, birthdate)
+    local user_ids, err = M.search_index.user_id.get_by_name_birthdate(name, birthdate)
     if err ~= nil then
         err = errors.wrap(err)
-        return nil, err
-    end
-
-    return get_users_by_ids(user_ids)
-end
-
-function M.find_users_by_passport_num(passport_num)
-    local user_ids, err = M.search_index.user_id.get_by_passport_num(passport_num)
-    if err ~= nil then
-        err = errors.wrap(err)
-        return nil, err
-    end
-
-    return get_users_by_ids(user_ids)
-end
-
-function M.find_users_by_geoposition(geoposition)
-    local user_ids, err = M.search_index.user_id.get_by_geoposition(geoposition)
-    if err ~= nil then
-        err = errors.wrap(err)
-        return nil, err
-    end
-
-    return get_users_by_ids(user_ids)
-end
-
-function M.find_by_phone_number_hash(phone_number_hash)
-    local user_ids, err = M.search_index.user_id.get_by_phone_number_hash(phone_number_hash)
-    if err ~= nil then
-        err  = errors.wrap(err)
         return nil, err
     end
 
@@ -148,10 +102,7 @@ function M.change_phone_number(id, new_phone_number)
     end
 
     M.identifiers_queue.delete_identifier(id, 'phone_number', old_phone_number)
-    M.identifiers_queue.delete_identifier(id, 'phone_number_hash', old_phone_number)
-
     M.identifiers_queue.add_identifier(id, 'phone_number', new_phone_number)
-    M.identifiers_queue.add_identifier(id, 'phone_number_hash', new_phone_number)
 
     return true, err
 end

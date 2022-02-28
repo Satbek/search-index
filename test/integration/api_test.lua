@@ -99,21 +99,8 @@ local function create_full_test_user()
     local user = {
         id = uuid.str(),
         name = 'full',
+        birthdate = math.random(100000, 200000),
         phone_number = tostring(math.random(100000, 200000)),
-        email = 'example' .. tostring(math.random(100000, 200000)) .. '@example.com',
-        birthdate = math.random(1,1000000),
-        passport_num = '12345',
-        metadata = {
-            geo = {
-                longitude = math.random(1,100),
-                latitude = math.random(1,100),
-            },
-            brands = {
-                Nike = true,
-                Adidas = true,
-                ["McDonald’s"] = true,
-            }
-        },
     }
     return user
 end
@@ -160,60 +147,6 @@ g.test_find_users_by_phone_numbers = function()
     end)
 end
 
-g.test_find_user_by_email = function()
-    local email = 'email@email.com'
-    local user = create_full_test_user()
-    user.email = email
-    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
-    t.assert_equals(err, nil)
-    t.helpers.retrying({timeout = 10}, function()
-        local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_email', {email})
-        t.assert_equals(err, nil)
-        t.assert_items_include(actual_users, { user })
-    end)
-end
-
-g.test_find_by_passport_num = function()
-    local passport_num = '12345ABC'
-    local user = create_full_test_user()
-    user.passport_num = passport_num
-
-    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
-    t.assert_equals(err, nil)
-
-    t.helpers.retrying({timeout = 10}, function()
-        local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_passport_num', {passport_num})
-        t.assert_equals(err, nil)
-        t.assert_items_include(actual_users, { user })
-    end)
-end
-
-g.test_find_by_geoposition = function()
-    local user = create_full_test_user()
-
-    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
-    t.assert_equals(err, nil)
-
-    t.helpers.retrying({timeout = 10}, function()
-        local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_geoposition', {user.metadata.geo})
-        t.assert_equals(err, nil)
-        t.assert_items_include(actual_users, { user })
-    end)
-end
-
-g.test_find_by_phone_number_hash = function()
-    local user = create_full_test_user()
-    local phone_number_hash = digest.md5_hex(user.phone_number .. "salty-salt")
-
-    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
-    t.assert_equals(err, nil)
-    t.helpers.retrying({timeout = 10}, function()
-        local actual_users, err = g.cluster.main_server.net_box:call('api.find_by_phone_number_hash', {phone_number_hash})
-        t.assert_equals(err, nil)
-        t.assert_items_include(actual_users, { user })
-    end)
-end
-
 g.test_change_phone_number = function()
     local user = create_full_test_user()
 
@@ -222,8 +155,6 @@ g.test_change_phone_number = function()
 
     local new_phone_number = '88888888'
     local old_phone_number = user.phone_number
-    local old_phone_number_hash = digest.md5_hex(old_phone_number .. "salty-salt")
-    local new_phone_number_hash = digest.md5_hex(new_phone_number .. "salty-salt")
 
     user.phone_number = new_phone_number
     local _, err = g.cluster.main_server.net_box:call('api.change_phone_number', {user.id, new_phone_number})
@@ -240,11 +171,16 @@ g.test_change_phone_number = function()
         local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_phone_number', {new_phone_number})
         t.assert_equals(err, nil)
         t.assert_items_include(actual_users, { user })
+    end)
+end
 
-        local _, err = g.cluster.main_server.net_box:call('api.find_by_phone_number_hash', {old_phone_number_hash})
-        t.assert_equals(err.class_name, "SEARCH_STORAGE: NOT_FOUND")
+g.test_find_user_by_name_birthdate = function()
+    local user = create_full_test_user()
+    local _, err = g.cluster.main_server.net_box:call('api.add_user', {user.id, user})
+    t.assert_equals(err, nil)
 
-        local actual_users, err = g.cluster.main_server.net_box:call('api.find_by_phone_number_hash', {new_phone_number_hash})
+    t.helpers.retrying({timeout = 10}, function()
+        local actual_users, err = g.cluster.main_server.net_box:call('api.find_users_by_name_birthdate', {user.name, user.birthdate})
         t.assert_equals(err, nil)
         t.assert_items_include(actual_users, { user })
     end)
